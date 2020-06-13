@@ -3,7 +3,7 @@ name = "amber"
 version = "0.1.0"
 description = "Search and download high resolution art from museums"
 authors = ["GOATS2K <jp@glattetre.com>"]
-readme = "README.md"
+readme = "README.rst"
 
 [tool.poetry.scripts]
 amber = "amber.commands:cmdgroup"
