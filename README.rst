@@ -11,10 +11,22 @@ Supported museums:
 Installation
 ------------
 
+Make sure you're able to run applications installed in your user directory by appending the
+folder Python installs packages in to your ``PATH`` environment variable.
+
+On Linux you can add the following string to your shell's respective configuration file (e.g. .bashrc)
+
+.. code-block::
+
+   export PATH=$HOME/.local/bin:$PATH
+
+To install ``amber``:
+
 .. code-block::
 
    git clone https://github.com/GOATS2K/amber.git
-   python setup.py install --user
+   cd amber
+   pip install . --user
 
 Run ``amber config`` to edit your config.
 
