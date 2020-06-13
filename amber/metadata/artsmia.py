@@ -10,7 +10,7 @@ class ArtsmiaMetadata(MetadataBase):
         return self.parse_image_metadata(metadata)
 
     def parse_image_metadata(self, metadata):
-        bloated_artist_string = ["Photographer: ", "Designer: "]
+        bloated_artist_string = ["Photographer: ", "Designer: ", "Maker: "]
 
         try:
             artist = metadata["highlight_artist_suggest"]["output"]
@@ -19,6 +19,9 @@ class ArtsmiaMetadata(MetadataBase):
                 artist = metadata["artist_suggest"]["output"]
             except KeyError:
                 artist = metadata.get("artist", "Unknown")
+
+        if artist == "":
+            artist = "Unknown"
 
         for i in bloated_artist_string:
             if i in artist:
