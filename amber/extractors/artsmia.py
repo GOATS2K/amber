@@ -61,9 +61,14 @@ class Artsmia(IIIF, ArtsmiaMetadata):
         iiif_image_data = await self.available_qualities(
             session, image_metadata["source_metadata"]["iiif_image_id"]
         )
-        download_url, file_format = await self.generate_download_link(
-            session, iiif_image_data
-        )
-        return await download_image_file(
-            session, image_metadata, download_url, file_format
-        )
+        if iiif_image_data:
+            download_url, file_format = await self.generate_download_link(
+                session, iiif_image_data
+            )
+            return await download_image_file(
+                session, image_metadata, download_url, file_format
+            )
+        else:
+            print(
+                f"\nFailed to download {image_metadata['source_url']} - image not available."
+            )

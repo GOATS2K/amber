@@ -51,21 +51,18 @@ async def download_multiple_images(tasks):
     Accepts a list of coroutines.
     """
     spinner = Halo("Downloading images...", color="magenta")
-    spinner.start()
-    results = await asyncio.gather(*tasks)
+    with spinner:
+        results = await asyncio.gather(*tasks)
+        if results:
+            spinner.succeed("Images downloaded:")
 
-    if len(results) <= 8:
-        spinner.stop()
-        click.secho("Images successfully downloaded:")
-
-        for res in results:
-            if type(res) is list:
-                for i in res:
-                    click.secho(i, fg="green")
-            else:
-                click.secho(res, fg="green")
-    else:
-        spinner.succeed("Images successfully downloaded.")
+        if len(results) <= 8:
+            for res in results:
+                if type(res) is list:
+                    for i in res:
+                        click.secho(i, fg="green")
+                else:
+                    click.secho(res, fg="green")
 
 
 async def download_image_file(session, metadata, url, file_format):
