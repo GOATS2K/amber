@@ -105,9 +105,16 @@ def download(source, image_id):
 
 @cmdgroup.command()
 @click.argument("search_str", nargs=-1)
-@click.option("--limit", default=5, help="Max amount of images to display per source.")
 @click.option(
-    "--source", default="all", help="Source name to search, defaults to all sources."
+    "--limit",
+    default=5,
+    help="Max amount of images to display per source. Defaults to 5.",
+)
+@click.option(
+    "--source",
+    default="all",
+    type=click.Choice(["all", "Artsmia", "Guggenheim"], case_sensitive=False),
+    help="Source name to search, defaults to all.",
 )
 def search(search_str, limit, source):
     """ Search and download images """
@@ -116,6 +123,13 @@ def search(search_str, limit, source):
 
     column, width = shutil.get_terminal_size()
     search_string = " ".join(search_str)
+
+    if not search_str:
+        click.secho(
+            "Your search string cannot be empty. Run --help to list available options.",
+            fg="red",
+        )
+        sys.exit(1)
 
     if source == "all":
         all_results = asyncio.run(
