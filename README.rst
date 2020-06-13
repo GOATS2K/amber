@@ -8,6 +8,11 @@ Supported museums:
 * Minneapolis Institute of Art
 * Guggenheim
 
+Requirements:
+
+* Python 3.7 or higher
+
+
 Installation
 ------------
 
