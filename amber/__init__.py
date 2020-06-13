@@ -2,6 +2,8 @@ import toml
 from appdirs import user_config_dir
 import pathlib
 import click
+import asyncio
+import sys
 from colorama import init
 
 init()
@@ -16,7 +18,7 @@ DEFAULT_CONFIG = {
 }
 
 if not CONFIG_DIR.exists():
-    CONFIG_DIR.mkdir()
+    CONFIG_DIR.mkdir(parents=True)
 
 if not CONFIG_FILE.exists():
     with open(CONFIG_FILE, "w") as config_handle:
@@ -28,3 +30,13 @@ if not CONFIG_FILE.exists():
 
 with open(CONFIG_FILE, "r") as config:
     config = toml.load(config)
+
+# Change event loop on Windows.
+# aiohttp fails with "RuntimeError: Event loop is close" without this fix.
+
+if (
+    sys.version_info[0] == 3
+    and sys.version_info[1] >= 8
+    and sys.platform.startswith("win")
+):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
