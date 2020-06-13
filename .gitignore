@@ -1,0 +1,7 @@
+/.vscode
+/amber.egg-info
+/dist
+*.pyo
+*.pyc
+test.py
+README.md
