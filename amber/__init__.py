@@ -15,6 +15,7 @@ DEFAULT_DOWNLOAD_DIR = pathlib.Path.home() / "Downloads"
 DEFAULT_CONFIG = {
     "download_directory": str(DEFAULT_DOWNLOAD_DIR),
     "filename_template": "{artist} - {title} ({dated})",
+    "max_simulataneous_downloads": 8,
 }
 
 if not CONFIG_DIR.exists():
@@ -25,11 +26,29 @@ if not CONFIG_FILE.exists():
         toml.dump(DEFAULT_CONFIG, config_handle)
 
     click.secho(
-        f"A default config has been written at: {str(CONFIG_FILE)}", fg="magenta"
+        f"A default config has been written to: {str(CONFIG_FILE)}", fg="magenta"
     )
+else:
+    # Add missing keys to config.
+    config_update = None
+    with open(CONFIG_FILE, "r+") as config_handle:
+        config = toml.load(config_handle)
 
-with open(CONFIG_FILE, "r") as config:
-    config = toml.load(config)
+        for key, value in DEFAULT_CONFIG.items():
+            if key not in config:
+                config_update = True
+                config[key] = value
+
+        if config_update:
+            # Delete contents of file
+            config_handle.seek(0)
+            config_handle.truncate()
+            toml.dump(config, config_handle)
+
+
+with open(CONFIG_FILE, "r") as config_handle:
+    config = toml.load(config_handle)
+
 
 # Change event loop on Windows.
 # aiohttp fails with "RuntimeError: Event loop is close" without this fix.
