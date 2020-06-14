@@ -8,6 +8,17 @@ from colorama import init
 
 init()
 
+# Change event loop on Windows.
+# aiohttp fails with "RuntimeError: Event loop is closed" without this fix.
+
+if (
+    sys.version_info[0] == 3
+    and sys.version_info[1] >= 8
+    and sys.platform.startswith("win")
+):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+
 CONFIG_DIR = pathlib.Path(user_config_dir(appname="amber"))
 CONFIG_FILE = CONFIG_DIR / "config.toml"
 DEFAULT_DOWNLOAD_DIR = pathlib.Path.home() / "Downloads"
@@ -40,6 +51,13 @@ else:
                 config[key] = value
 
         if config_update:
+            click.secho(
+                "A recent update introduced a new configuration option.", fg="magenta"
+            )
+            click.secho(
+                "This has now been added to your current configuration file.\n",
+                fg="magenta",
+            )
             # Delete contents of file
             config_handle.seek(0)
             config_handle.truncate()
@@ -48,14 +66,3 @@ else:
 
 with open(CONFIG_FILE, "r") as config_handle:
     config = toml.load(config_handle)
-
-
-# Change event loop on Windows.
-# aiohttp fails with "RuntimeError: Event loop is closed" without this fix.
-
-if (
-    sys.version_info[0] == 3
-    and sys.version_info[1] >= 8
-    and sys.platform.startswith("win")
-):
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
