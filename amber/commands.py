@@ -85,22 +85,23 @@ def config():
 
 
 @cmdgroup.command()
-@click.argument("source")
+@click.option(
+    "--source",
+    type=click.Choice(["Artsmia", "Guggenheim"], case_sensitive=False),
+    help="Source to download from",
+    required=True,
+)
 @click.argument("image_id")
 def download(source, image_id):
     """ Download an image by ID """
-    try:
-        # Get internal source name
-        downloader_module = SOURCES[source]
-        # Initialize source class
-        source_class = getattr(downloader_module, source)
-        # Instantiate class
-        source = source_class()
-    except KeyError:
-        click.secho("This source is not supported.", fg="red")
-        sys.exit(1)
+    available_sources = get_available_sources()
+    source = [
+        source_instance
+        for source_instance in available_sources
+        if source.lower() == source_instance.name.lower()
+    ][0]
 
-    asyncio.run(download_image(source, image_id))
+    asyncio.run(download_image(source, image_id=image_id))
 
 
 @cmdgroup.command()
@@ -140,23 +141,17 @@ def search(search_str, limit, source):
             )
         )
     else:
-        try:
-            selected_source = [
-                source_instance
-                for source_instance in available_sources
-                if source.lower() == source_instance.name.lower()
-            ][0]
+        selected_source = [
+            source_instance
+            for source_instance in available_sources
+            if source.lower() == source_instance.name.lower()
+        ][0]
 
-            all_results = asyncio.run(
-                source_search(
-                    search_string, search_limit=limit, source_instance=selected_source
-                )
+        all_results = asyncio.run(
+            source_search(
+                search_string, search_limit=limit, source_instance=selected_source
             )
-        except IndexError:
-            click.secho("Amber only supports the following sources:")
-            for i in available_sources:
-                click.secho(f"{i.name}", fg="magenta")
-            sys.exit(1)
+        )
 
     friendly_results = generate_inquirer_choices(
         all_results, terminal_colomn_length=column

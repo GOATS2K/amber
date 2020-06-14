@@ -42,7 +42,10 @@ async def download_image(source, **kwargs):
     Runs an extractor's download function.
     """
     async with aiohttp.ClientSession() as session:
-        return await source.download(session, **kwargs)
+        spinner = Halo("Downloading image...", color="magenta")
+        with spinner:
+            image_path = await source.download(session, **kwargs)
+            spinner.succeed(f"Image downloaded to {image_path}")
 
 
 async def download_multiple_images(tasks):
