@@ -60,7 +60,7 @@ async def download_multiple_images(tasks):
     with spinner:
         results = await asyncio.gather(*tasks)
         if results:
-            spinner.succeed("Images downloaded:")
+            spinner.succeed("Images downloaded.")
 
     if len(results) <= 8:
         for res in results:
