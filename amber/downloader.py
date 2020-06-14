@@ -37,15 +37,18 @@ def generate_filename(**kwargs):
     return new_filename
 
 
-async def download_image(source, **kwargs):
+async def download_image(source, single_image=False, **kwargs):
     """
     Runs an extractor's download function.
     """
     async with aiohttp.ClientSession() as session:
-        spinner = Halo("Downloading image...", color="magenta")
-        with spinner:
-            image_path = await source.download(session, **kwargs)
-            spinner.succeed(f"Image downloaded to {image_path}")
+        if single_image:
+            spinner = Halo("Downloading image...", color="magenta")
+            with spinner:
+                image_path = await source.download(session, **kwargs)
+                spinner.succeed(f"Image downloaded to {image_path}")
+        else:
+            await source.download(session, **kwargs)
 
 
 async def download_multiple_images(tasks):

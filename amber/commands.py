@@ -101,7 +101,7 @@ def download(source, image_id):
         if source.lower() == source_instance.name.lower()
     ][0]
 
-    asyncio.run(download_image(source, image_id=image_id))
+    asyncio.run(download_image(source, single_image=True, image_id=image_id))
 
 
 @cmdgroup.command()
