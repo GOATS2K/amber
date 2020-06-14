@@ -15,7 +15,7 @@ DEFAULT_DOWNLOAD_DIR = pathlib.Path.home() / "Downloads"
 DEFAULT_CONFIG = {
     "download_directory": str(DEFAULT_DOWNLOAD_DIR),
     "filename_template": "{artist} - {title} ({dated})",
-    "max_simulataneous_downloads": 8,
+    "max_simultaneous_downloads": 8,
 }
 
 if not CONFIG_DIR.exists():
@@ -51,7 +51,7 @@ with open(CONFIG_FILE, "r") as config_handle:
 
 
 # Change event loop on Windows.
-# aiohttp fails with "RuntimeError: Event loop is close" without this fix.
+# aiohttp fails with "RuntimeError: Event loop is closed" without this fix.
 
 if (
     sys.version_info[0] == 3
