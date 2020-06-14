@@ -48,7 +48,7 @@ async def download_image(source, single_image=False, **kwargs):
                 image_path = await source.download(session, **kwargs)
                 spinner.succeed(f"Image downloaded to {image_path}")
         else:
-            await source.download(session, **kwargs)
+            return await source.download(session, **kwargs)
 
 
 async def download_multiple_images(tasks):
@@ -62,13 +62,13 @@ async def download_multiple_images(tasks):
         if results:
             spinner.succeed("Images downloaded:")
 
-        if len(results) <= 8:
-            for res in results:
-                if type(res) is list:
-                    for i in res:
-                        click.secho(i, fg="green")
-                else:
-                    click.secho(res, fg="green")
+    if len(results) <= 8:
+        for res in results:
+            if type(res) is list:
+                for i in res:
+                    click.secho(i, fg="green")
+            else:
+                click.secho(res, fg="green")
 
 
 async def download_image_file(session, metadata, url, file_format):
