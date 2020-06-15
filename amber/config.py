@@ -8,6 +8,8 @@ DEFAULT_CONFIG = {
     "download_directory": str(DEFAULT_DOWNLOAD_DIR),
     "filename_template": "{artist} - {title} ({dated})",
     "max_simultaneous_downloads": 8,
+    "folder_template": "{source}/{artist}",
+    "create_subfolders": False,
 }
 
 
@@ -26,6 +28,7 @@ def write_default_config(config_file):
 
 def update_config(config_file):
     config_update = None
+    new_keys = []
     with open(config_file, "r+") as config_handle:
         config = toml.load(config_handle)
 
@@ -33,13 +36,18 @@ def update_config(config_file):
             if key not in config:
                 config_update = True
                 config[key] = value
+                new_keys.append(key)
 
         if config_update:
             click.secho(
-                "A recent update introduced a new configuration option.", fg="magenta"
+                "A recent update introduced new configuration options:", fg="magenta"
             )
+
+            for new_key in new_keys:
+                click.secho(new_key, fg="yellow")
+
             click.secho(
-                "This has now been added to your current configuration file.\n",
+                "\nThese have now been added to your current configuration file.\n",
                 fg="magenta",
             )
             # Delete contents of file
