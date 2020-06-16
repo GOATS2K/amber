@@ -18,21 +18,21 @@ def create_config_dir(config_dir):
         config_dir.mkdir(parents=True, exist_ok=True)
 
 
-def write_default_config(config_file):
+def write_default_config(config_file, default_config):
     with open(config_file, "w") as config_handle:
-        toml.dump(DEFAULT_CONFIG, config_handle)
+        toml.dump(default_config, config_handle)
         click.secho(
             f"A default config has been written to: {str(config_file)}", fg="magenta"
         )
 
 
-def update_config(config_file):
+def update_config(config_file, default_config):
     config_update = None
     new_keys = []
     with open(config_file, "r+") as config_handle:
         config = toml.load(config_handle)
 
-        for key, value in DEFAULT_CONFIG.items():
+        for key, value in default_config.items():
             if key not in config:
                 config_update = True
                 config[key] = value

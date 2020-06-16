@@ -1,7 +1,12 @@
 import toml
 from appdirs import user_config_dir
 import pathlib
-from amber.config import create_config_dir, write_default_config, update_config
+from amber.config import (
+    create_config_dir,
+    write_default_config,
+    update_config,
+    DEFAULT_CONFIG,
+)
 import asyncio
 import sys
 from colorama import init
@@ -24,12 +29,12 @@ CONFIG_FILE = CONFIG_DIR / "config.toml"
 
 if not CONFIG_DIR.exists():
     create_config_dir(CONFIG_DIR)
-    write_default_config(CONFIG_FILE)
+    write_default_config(CONFIG_FILE, DEFAULT_CONFIG)
 
 if CONFIG_FILE.exists():
-    update_config(CONFIG_FILE)
+    update_config(CONFIG_FILE, DEFAULT_CONFIG)
 else:
-    write_default_config(CONFIG_FILE)
+    write_default_config(CONFIG_FILE, DEFAULT_CONFIG)
 
 
 with open(CONFIG_FILE, "r") as config_handle:
