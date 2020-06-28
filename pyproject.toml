@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "amber"
-version = "0.1.0"
+version = "0.2.0"
 description = "Search and download high resolution art from museums"
 authors = ["GOATS2K <jp@glattetre.com>"]
 readme = "README.rst"
