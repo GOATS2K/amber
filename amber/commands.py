@@ -6,7 +6,10 @@ import inquirer
 from amber.common import generate_inquirer_choices
 from amber import CONFIG_FILE
 from amber.extractors import SOURCES
-from amber.downloader import download_image, download_multiple_images
+from amber.downloader import (
+    download_image,
+    download_multiple_images,
+)
 import shutil
 
 
@@ -15,9 +18,7 @@ def get_available_sources():
     available_sources = []
 
     for i in SOURCES:
-        source_module = SOURCES[i]
-        source_class = getattr(source_module, i)
-        source = source_class()
+        source = SOURCES.get(i)()
         available_sources.append(source)
 
     return available_sources
@@ -101,7 +102,7 @@ def download(source, image_id):
         if source.lower() == source_instance.name.lower()
     ][0]
 
-    asyncio.run(download_image(source, single_image=True, image_id=image_id))
+    asyncio.run(download_image(source, image_id=image_id))
 
 
 @cmdgroup.command()
@@ -119,7 +120,6 @@ def download(source, image_id):
 )
 def search(search_str, limit, source):
     """ Search and download images """
-    download_tasks = []
     available_sources = get_available_sources()
 
     column, width = shutil.get_terminal_size()
@@ -158,14 +158,4 @@ def search(search_str, limit, source):
     )
 
     results_to_download = prompt_for_search_results(friendly_results, all_results)
-
-    for source_instance in available_sources:
-        download_queue = [
-            image
-            for image in results_to_download
-            if image["source"] == source_instance.name
-        ]
-        for dl in download_queue:
-            download_tasks.append(download_image(source_instance, image_metadata=dl))
-
-    asyncio.run(download_multiple_images(download_tasks))
+    asyncio.run(download_multiple_images(available_sources, results_to_download))
