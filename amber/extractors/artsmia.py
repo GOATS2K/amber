@@ -1,6 +1,5 @@
 from urllib.parse import urlparse
 from amber.extractors.backends.iiif import IIIF
-from amber.downloader import download_image_file
 from amber.metadata.artsmia import ArtsmiaMetadata
 
 
@@ -53,7 +52,7 @@ class Artsmia(IIIF, ArtsmiaMetadata):
 
         return str(image_url.path).strip("/")
 
-    async def download(self, session, image_id=None, image_metadata=None):
+    async def get_image(self, session, image_id=None, image_metadata=None):
         """ Downloads an image by its ID """
         if not image_metadata:
             image_metadata = await self.get_image_metadata(session, image_id)
@@ -61,14 +60,17 @@ class Artsmia(IIIF, ArtsmiaMetadata):
         iiif_image_data = await self.available_qualities(
             session, image_metadata["source_metadata"]["iiif_image_id"]
         )
+
         if iiif_image_data:
             download_url, file_format = await self.generate_download_link(
                 session, iiif_image_data
             )
-            return await download_image_file(
-                session, image_metadata, download_url, file_format
-            )
+            return {
+                "metadata": image_metadata,
+                "url": download_url,
+                "file_format": file_format,
+            }
         else:
             print(
-                f"\nFailed to download {image_metadata['source_url']} - image not available."
+                f"\nFailed to download {image_metadata['source_url']} - image not available."  # noqa E501
             )

@@ -1,3 +1,4 @@
-from . import artsmia, guggenheim
+from .artsmia import Artsmia
+from .guggenheim import Guggenheim
 
-SOURCES = {"Artsmia": artsmia, "Guggenheim": guggenheim}
+SOURCES = {"Artsmia": Artsmia, "Guggenheim": Guggenheim}

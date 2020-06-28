@@ -1,5 +1,4 @@
 from amber.metadata.guggenheim import GuggenheimMetadata
-from amber.downloader import download_image_file
 import mimetypes
 
 
@@ -43,12 +42,12 @@ class Guggenheim(GuggenheimMetadata):
 
         return parsed_results
 
-    async def download(self, session, image_id=None, image_metadata=None):
+    async def get_image(self, session, image_id=None, image_metadata=None):
         if not image_metadata:
-            image_metadata = await self.get_image_metadata(image_id)
+            image_metadata = await self.get_image_metadata(session, image_id)
 
         download_urls = []
-        fnames = []
+        images = []
 
         original_metadata = image_metadata.copy()
 
@@ -73,9 +72,12 @@ class Guggenheim(GuggenheimMetadata):
             image_metadata["title"] = f"{original_metadata['title']} ({i['slug']})"
             image_metadata["resolution"] = i["resolution"]
 
-            fname = await download_image_file(
-                session, image_metadata, i["url"], i["file_format"]
-            )
-            fnames.append(fname)
+            image = {
+                "metadata": image_metadata,
+                "url": i["url"],
+                "file_format": i["file_format"],
+            }
 
-        return fnames
+            images.append(image)
+
+        return images

@@ -7,7 +7,7 @@ from halo import Halo
 from string import Formatter
 from amber import config
 from pathlib import Path
-from pathvalidate import sanitize_filename
+from pathvalidate import sanitize_filename, sanitize_filepath
 
 
 def strip_template_keys(template, key):
@@ -17,10 +17,9 @@ def strip_template_keys(template, key):
     return re.sub(r" *- *$", "", folder)
 
 
-def generate_filename(**kwargs):
+def generate_destination_name(template, **kwargs):
     # Code from light7s/smoked-salmon (https://github.com/ligh7s/smoked-salmon)
     # Licensed as Apache License 2.0
-    template = config["filename_template"]
 
     # Build new template string
     keys = [fn for _, fn, _, _ in Formatter().parse(template) if fn]
@@ -32,48 +31,73 @@ def generate_filename(**kwargs):
             template = strip_template_keys(template, k)
             keys.remove(k)
 
-    new_filename = template.format(**non_empty_metadata)
+    dest_name = template.format(**non_empty_metadata)
 
-    return new_filename
+    return dest_name
 
 
-async def download_image(source, single_image=False, **kwargs):
+async def get_images_to_download(session, available_sources, results_to_download):
+    all_images = []
+    url_tasks = []
+
+    for source in available_sources:
+        download_queue = [
+            image for image in results_to_download if image["source"] == source.name
+        ]
+        for dl in download_queue:
+            url_tasks.append(source.get_image(session, image_metadata=dl))
+
+    images = await asyncio.gather(*url_tasks)
+
+    for image in images:
+        if type(image) == list:
+            all_images += image
+        else:
+            all_images.append(image)
+
+    return all_images
+
+
+async def download_image(source, **kwargs):
     """
     Runs an extractor's download function.
     """
     async with aiohttp.ClientSession() as session:
-        if single_image:
-            spinner = Halo("Downloading image...", color="magenta")
-            with spinner:
-                image_path = await source.download(session, **kwargs)
-                spinner.succeed(f"Image downloaded to {image_path}")
-        else:
-            return await source.download(session, **kwargs)
+        spinner = Halo("Downloading image...", color="magenta")
+        with spinner:
+            image = await source.get_image(session, **kwargs)
+            image_path = await download_image_file(session, **image)
+            spinner.succeed(f"Image downloaded to {image_path}")
 
 
-async def download_multiple_images(tasks):
+async def download_multiple_images(available_sources, results_to_download):
     """
     Downloads multiple images.
     Accepts a list of coroutines.
     """
+    semaphore = asyncio.Semaphore(config["max_simultaneous_downloads"])
     spinner = Halo("Downloading images...", color="magenta")
-    with spinner:
-        results = await asyncio.gather(*tasks)
-        if results:
-            spinner.succeed("Images downloaded.")
 
-    if len(results) <= 8:
-        for res in results:
-            if type(res) is list:
-                for i in res:
-                    click.secho(i, fg="green")
-            else:
-                click.secho(res, fg="green")
+    async with aiohttp.ClientSession() as session:
+        images = get_images_to_download(session, available_sources, results_to_download)
+        async with semaphore:
+            download_task = [
+                bound_download_image_file(session, semaphore, **image)
+                for image in images
+            ]
+
+            with spinner:
+                results = await asyncio.gather(*download_task)
+                if results:
+                    spinner.succeed("Images downloaded.")
+
+                if len(results) <= 8:
+                    for res in results:
+                        click.secho(res, fg="green")
 
 
 async def download_image_file(session, metadata, url, file_format):
-    fname = sanitize_filename(f"{generate_filename(**metadata)}.{file_format}")
-    target = Path(config["download_directory"]) / fname
+    target = _generate_download_target(metadata, file_format)
 
     async with session.get(url) as resp:
         async with aiofiles.open(target, mode="wb") as image:
@@ -84,3 +108,31 @@ async def download_image_file(session, metadata, url, file_format):
                 await image.write(chunk)
 
     return str(target)
+
+
+def _generate_download_target(metadata, file_format):
+    fname_template = config["filename_template"]
+    folder_template = config["folder_template"]
+
+    if config["create_subfolders"]:
+        sub_folder = sanitize_filepath(
+            generate_destination_name(folder_template, **metadata)
+        )
+        target_folder = Path(config["download_directory"]) / sub_folder
+        target_folder.mkdir(parents=True, exist_ok=True)
+    else:
+        target_folder = Path(config["download_directory"])
+
+    fname = sanitize_filename(
+        f"{generate_destination_name(fname_template, **metadata)}.{file_format}"
+    )
+    target = target_folder / fname
+
+    return target
+
+
+async def bound_download_image_file(
+    session, semaphore, metadata=None, url=None, file_format=None
+):
+    async with semaphore:
+        return await download_image_file(session, metadata, url, file_format)
