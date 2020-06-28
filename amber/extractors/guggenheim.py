@@ -21,19 +21,7 @@ class Guggenheim(GuggenheimMetadata):
         parsed_results = []
 
         for i in results:
-            source_metadata_list = []
-            source_metadata = await self.get_source_metadata(
-                session, i["_links"]["wp:attachment"][0]["href"]
-            )
-            for link in source_metadata:
-                source_metadata_dict = {
-                    "id": link["id"],
-                    "slug": link["slug"],
-                    "date_modified": link["modified"],
-                    "media_details": link["media_details"],
-                }
-                source_metadata_list.append(source_metadata_dict)
-
+            source_metadata_list = await self._get_parsed_source_metadata(session, i)
             image_metadata = self.parse_image_metadata(
                 i, source_metadata=source_metadata_list
             )

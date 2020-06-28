@@ -66,8 +66,17 @@ async def download_image(source, **kwargs):
         spinner = Halo("Downloading image...", color="magenta")
         with spinner:
             image = await source.get_image(session, **kwargs)
-            image_path = await download_image_file(session, **image)
-            spinner.succeed(f"Image downloaded to {image_path}")
+            # Some sources deliver multiple image files per image
+            if type(image) == list:
+                for i in image:
+                    image_path = await download_image_file(session, **i)
+                    stem = Path(image_path).parent
+                    complete_msg = f"Multiple images downloaded to {stem}"
+            else:
+                image_path = await download_image_file(session, **image)
+                complete_msg = f"Image downloaded to {image_path}"
+
+            spinner.succeed(complete_msg)
 
 
 async def download_multiple_images(available_sources, results_to_download):
@@ -79,7 +88,9 @@ async def download_multiple_images(available_sources, results_to_download):
     spinner = Halo("Downloading images...", color="magenta")
 
     async with aiohttp.ClientSession() as session:
-        images = get_images_to_download(session, available_sources, results_to_download)
+        images = await get_images_to_download(
+            session, available_sources, results_to_download
+        )
         async with semaphore:
             download_task = [
                 bound_download_image_file(session, semaphore, **image)
