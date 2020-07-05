@@ -37,6 +37,10 @@ def generate_destination_name(template, **kwargs):
 
 
 async def get_images_to_download(session, available_sources, results_to_download):
+    """
+    Accepts a list of instantiated sources and a list of images to download.
+    Returns image metadata with image URL
+    """
     all_images = []
     url_tasks = []
 
@@ -59,9 +63,6 @@ async def get_images_to_download(session, available_sources, results_to_download
 
 
 async def download_image(source, **kwargs):
-    """
-    Runs an extractor's download function.
-    """
     async with aiohttp.ClientSession() as session:
         spinner = Halo("Downloading image...", color="magenta")
         with spinner:
@@ -81,8 +82,8 @@ async def download_image(source, **kwargs):
 
 async def download_multiple_images(available_sources, results_to_download):
     """
-    Downloads multiple images.
-    Accepts a list of coroutines.
+    Accepts a list of instantiated sources and a list of images to download.
+    Downloads images in list.
     """
     semaphore = asyncio.Semaphore(config["max_simultaneous_downloads"])
     spinner = Halo("Downloading images...", color="magenta")
