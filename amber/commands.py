@@ -11,6 +11,7 @@ from amber.downloader import (
     download_multiple_images,
 )
 import shutil
+import copy
 
 
 def get_available_sources():
@@ -153,8 +154,10 @@ def search(search_str, limit, source):
             )
         )
 
+    source_results = copy.deepcopy(all_results)
+
     friendly_results = generate_inquirer_choices(
-        all_results, terminal_colomn_length=column
+        source_results, terminal_colomn_length=column
     )
 
     results_to_download = prompt_for_search_results(friendly_results, all_results)

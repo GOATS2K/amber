@@ -52,8 +52,7 @@ def generate_inquirer_choices(
         the prompt message repeats itself.
 
         In an attempt to mitigate this, we're shortening the length of
-        the titles cause full result strings larger than the width of
-        the users terminal window.
+        the title strings.
         """
         if terminal_colomn_length < len(fresult):
 
